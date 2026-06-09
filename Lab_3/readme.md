@@ -1,173 +1,80 @@
-# Lab 3: VHDL Code for Combinational Circuits (Encoder and Decoder)
+# Lab 5: VHDL Code for Combinational Circuits: Comparator
 
-**Course:** Computer Architecture (CMP 262)
-**Program:** Bachelor of Computer Engineering
-**Semester:** Fourth Semester
-**College:** Cosmos College of Management and Technology
-**Department:** Department of Information and Communication Technology
+**Course:** Computer Architecture (CMP 262)  
+**Program:** Bachelor of Computer Engineering  
+**Semester:** Fourth Semester  
+**College:** Cosmos College of Management and Technology  
+**Department:** Department of Information and Communication Technology  
 
 ---
 
 ## Objective
-
-- To design and simulate a 4-to-2 priority encoder in VHDL.
-- To design and simulate a 2-to-4 decoder in VHDL.
+- To design and simulate a 2-bit magnitude comparator in VHDL.
+- To understand how comparison operations are implemented in hardware.
 
 ---
 
 ## Theory
+A magnitude comparator compares two binary numbers and produces three output signals:
+- **EQ (Equal):** HIGH when A = B
+- **GT (Greater Than):** HIGH when A > B
+- **LT (Less Than):** HIGH when A < B
 
-### Encoder
+For a 2-bit comparator with inputs A (A₁A₀) and B (B₁B₀), the logic can be described using standard comparison operators in VHDL by casting the vectors to `unsigned` types.
 
-An encoder converts 2ⁿ input lines into an n-bit binary code. Only one input is active (HIGH) at a time. A **4-to-2 encoder** has 4 inputs (I₀–I₃) and produces a 2-bit output (Y₁Y₀).
+### Expected Truth Table
 
-A **priority encoder** handles the case where multiple inputs are high simultaneously by giving priority to the highest-numbered active input.
-
-#### Truth Table: 4-to-2 Priority Encoder
-
-| I₃ | I₂ | I₁ | I₀ | Y₁ | Y₀ | V |
-|----|----|----|----|----|----|----|
-| 0  | 0  | 0  | 1  | 0  | 0  | 1  |
-| 0  | 0  | 1  | X  | 0  | 1  | 1  |
-| 0  | 1  | X  | X  | 1  | 0  | 1  |
-| 1  | X  | X  | X  | 1  | 1  | 1  |
-| 0  | 0  | 0  | 0  | X  | X  | 0  |
-
-Where **V** is the valid output ('1' if any input is active, '0' if no input is active) and **X** represents "don't care".
-
-### Decoder
-
-A **decoder** converts an n-bit binary input into one of 2ⁿ output lines. Exactly one output is HIGH at a time. A **2-to-4 decoder** has a 2-bit input (A₁A₀) and 4 output lines (Y₀–Y₃).
-
-#### Truth Table: 2-to-4 Decoder
-
-| A₁ | A₀ | Y₃ | Y₂ | Y₁ | Y₀ |
-|----|----|----|----|----|----| 
-| 0  | 0  | 0  | 0  | 0  | 1  |
-| 0  | 1  | 0  | 0  | 1  | 0  |
-| 1  | 0  | 0  | 1  | 0  | 0  |
-| 1  | 1  | 1  | 0  | 0  | 0  |
+| A (bin) | B (bin) | EQ | GT | LT |
+|---------|---------|----|----|----|
+| 00      | 00      | 1  | 0  | 0  |
+| 01      | 00      | 0  | 1  | 0  |
+| 00      | 01      | 0  | 0  | 1  |
+| 10      | 11      | 0  | 0  | 1  |
+| 11      | 10      | 0  | 1  | 0  |
+| 11      | 11      | 1  | 0  | 0  |
 
 ---
 
 ## Design Files
 
-### 4-to-2 Priority Encoder
+### 2-bit Magnitude Comparator
+**Filename:** `comparator_2bit.vhd`  
+Implements the comparison logic using a behavioral process with `if-elsif-else` statements.
 
-**Filename:** `encoder_4to2.vhd`
-
-Implements a priority encoder using a behavioral architectural style with an if-elsif statement that checks each input in order of priority, with I₃ having the highest priority and I₀ having the lowest priority.
-
-**Entity Ports:**
-- `I` (4-bit input): The four input lines
-- `Y` (2-bit output): The encoded output
-- `V` (output): Valid signal (1 if any input is active, 0 otherwise)
-
-### 4-to-2 Priority Encoder Testbench
-
-**Filename:** `encoder_tb.vhd`
-
-Testbench that verifies the priority encoder operation with the following test cases:
-- Single input activated (I₀, I₁, I₂, I₃)
-- Multiple inputs active (I₃ and I₁) - shows priority
-- No inputs active - shows V='0'
-
-### 2-to-4 Decoder
-
-**Filename:** `decoder_2to4.vhd`
-
-Implements a 2-to-4 decoder using a behavioral architectural style with a case statement. Includes an active-high enable signal.
-
-**Entity Ports:**
-- `A` (2-bit input): The input code
-- `EN` (input): Enable signal (active high)
-- `Y` (4-bit output): The decoded output lines
-
-### 2-to-4 Decoder Testbench
-
-**Filename:** `decoder_tb.vhd`
-
-Testbench that verifies the decoder operation with the following test cases:
-- All four possible 2-bit input combinations with EN='1'
-- Same input with EN='0' to show output disabled
+### Testbench
+**Filename:** `comparator_tb.vhd`  
+Verifies the design by cycling through various input combinations of A and B.
 
 ---
 
 ## Simulation Commands
 
-### Encoder Simulation
-
 ```bash
-# 1. Analyze encoder design and testbench files
-ghdl -a encoder_4to2.vhd encoder_tb.vhd
+# 1. Analyze design and testbench files
+ghdl -a comparator_2bit.vhd comparator_tb.vhd
 
 # 2. Elaborate the testbench
-ghdl -e ENCODER_TB
+ghdl -e COMPARATOR_TB
 
 # 3. Simulate and export waveform
-ghdl -r ENCODER_TB --vcd=encoder.vcd
+ghdl -r COMPARATOR_TB --vcd=comparator.vcd
 
 # 4. Open waveform in GTKWave
-gtkwave encoder.vcd
+gtkwave comparator.vcd
 ```
-
-### Decoder Simulation
-
-```bash
-# 1. Analyze decoder design and testbench files
-ghdl -a decoder_2to4.vhd decoder_tb.vhd
-
-# 2. Elaborate the testbench
-ghdl -e DECODER_TB
-
-# 3. Simulate and export waveform
-ghdl -r DECODER_TB --vcd=decoder.vcd
-
-# 4. Open waveform in GTKWave
-gtkwave decoder.vcd
-```
-
----
-
-## Simulation Files
-
-**Filenames:** `encoder.vcd`, `decoder.vcd`
-
-Generated by GHDL after running each testbench. These Value Change Dump (VCD) files record all signal transitions for inputs and outputs over the simulation period. They are loaded into GTKWave for visual verification against the expected truth tables.
 
 ---
 
 ## Output
-
-The waveforms were generated and verified in GTKWave to confirm proper operation of both the encoder and decoder circuits.
-
-### Encoder Simulation Output
-
-The GTKWave simulation of the 4-to-2 priority encoder shows:
-
-![Encoder Waveform](encoder.png)
+The GTKWave simulation confirms the logic:
 
 **Waveform Analysis:**
-- **Time 0-10 ns:** I = "0001" (I₀ active) → Y = "00", V = '1'
-- **Time 10-20 ns:** I = "0010" (I₁ active) → Y = "01", V = '1'
-- **Time 20-30 ns:** I = "0100" (I₂ active) → Y = "10", V = '1'
-- **Time 30-40 ns:** I = "1000" (I₃ active) → Y = "11", V = '1'
-- **Time 40-50 ns:** I = "1010" (I₃ and I₁ active) → Y = "11", V = '1' (priority to I₃)
-- **Time 50-60 ns:** I = "0000" (no inputs active) → V = '0' (invalid)
+- **0-10 ns:** A="00", B="00" → EQ=1
+- **10-20 ns:** A="01", B="00" → GT=1
+- **20-30 ns:** A="00", B="01" → LT=1
+- **30-40 ns:** A="10", B="11" → LT=1
+- **40-50 ns:** A="11", B="10" → GT=1
+- **50-60 ns:** A="11", B="11" → EQ=1
 
-The waveform correctly demonstrates priority encoding, where when multiple inputs are active, the highest-priority input (I₃) is selected. The valid signal (V) properly indicates when at least one input is active.
-
-### Decoder Simulation Output
-
-The GTKWave simulation of the 2-to-4 decoder shows:
-
-![Decoder Waveform](decoder.png)
-
-**Waveform Analysis:**
-- **Time 0-10 ns:** A = "00", EN = '1' → Y = "0001" (output Y₀ active)
-- **Time 10-20 ns:** A = "01", EN = '1' → Y = "0010" (output Y₁ active)
-- **Time 20-30 ns:** A = "10", EN = '1' → Y = "0100" (output Y₂ active)
-- **Time 30-40 ns:** A = "11", EN = '1' → Y = "1000" (output Y₃ active)
-- **Time 40-50 ns:** EN = '0' → Y = "0000" (all outputs disabled)
-
-The waveform correctly demonstrates that each 2-bit input combination produces exactly one active output line when enabled, and when the enable signal is low, all outputs are disabled.
+## Conclusion
+The 2-bit magnitude comparator was successfully designed and simulated. The behavioral model correctly identifies the relationship between the two 2-bit binary inputs, matching the expected truth table exactly.
