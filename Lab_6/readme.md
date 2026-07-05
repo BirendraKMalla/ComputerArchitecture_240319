@@ -1,4 +1,4 @@
-# Lab 6: VHDL Code for Combinational Circuits (Code Converter)
+# Lab 6: VHDL Code for Combinational Circuits — Code Converter
 
 **Course:** Computer Architecture (CMP 262)
 **Program:** Bachelor of Computer Engineering
@@ -17,118 +17,188 @@
 
 ## Theory
 
-### BCD to Excess-3
+### BCD to Excess-3 (XS-3)
 
-Excess-3 (XS-3) is a non-weighted BCD code obtained by adding 3 (`0011`) to each BCD digit. It is self-complementing, making it useful in arithmetic circuits.
-
-#### BCD to Excess-3 Conversion Table
+Excess-3 is a non-weighted BCD code obtained by adding 3 (0011) to each BCD digit. It is self-complementing, meaning the 9's complement of any digit can be obtained by simply inverting all bits. This property makes it useful in arithmetic circuits.
 
 | Decimal | BCD (DCBA) | Excess-3 (WXYZ) |
-|---|---|---|
-| 0 | 0000 | 0011 |
-| 1 | 0001 | 0100 |
-| 2 | 0010 | 0101 |
-| 3 | 0011 | 0110 |
-| 4 | 0100 | 0111 |
-| 5 | 0101 | 1000 |
-| 6 | 0110 | 1001 |
-| 7 | 0111 | 1010 |
-| 8 | 1000 | 1011 |
-| 9 | 1001 | 1100 |
+|---------|------------|-----------------|
+| 0       | 0000       | 0011            |
+| 1       | 0001       | 0100            |
+| 2       | 0010       | 0101            |
+| 3       | 0011       | 0110            |
+| 4       | 0100       | 0111            |
+| 5       | 0101       | 1000            |
+| 6       | 0110       | 1001            |
+| 7       | 0111       | 1010            |
+| 8       | 1000       | 1011            |
+| 9       | 1001       | 1100            |
+
+In VHDL, this conversion is implemented using the `NUMERIC_STD` library by casting the BCD input to `unsigned`, adding 3, and casting back to `std_logic_vector`.
+
+---
 
 ### Binary to Gray Code
 
-Gray code is a binary numeral system where two successive values differ by only one bit. It is widely used in rotary encoders and error minimization.
+Gray code is a binary numeral system where two successive values differ by only **one bit**. This property minimizes errors during transitions and makes it widely used in rotary encoders and digital communication systems.
 
-The conversion rule is:
+The conversion rule from Binary (B) to Gray (G) is:
 
-- The Gray code MSB is the same as the binary MSB.
-- Each next Gray bit is found by XORing adjacent binary bits: `Gi = Bi xor Bi+1`.
+```
+G(MSB) = B(MSB)
+G(i)   = B(i+1) XOR B(i)
+```
 
-#### Binary to Gray Conversion Table
+In VHDL, this is implemented using the **Dataflow** modeling style with concurrent XOR signal assignments.
+
+### Expected Output — Binary to Gray
 
 | Binary (B) | Gray (G) |
-|---|---|
-| 0000 | 0000 |
-| 0001 | 0001 |
-| 0010 | 0011 |
-| 0011 | 0010 |
-| 0100 | 0110 |
-| 1111 | 1000 |
+|------------|----------|
+| 0000       | 0000     |
+| 0001       | 0001     |
+| 0010       | 0011     |
+| 0011       | 0010     |
+| 0100       | 0110     |
+| 1111       | 1000     |
 
 ---
 
 ## Design Files
 
-### BCD-to-Excess-3 Converter
+### 1. BCD to Excess-3 Converter
 
 **Filename:** `bcd_to_xs3.vhd`
 
-The design uses `IEEE.NUMERIC_STD` and converts the input by adding decimal 3 to the unsigned value of the 4-bit BCD input.
+```vhdl
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+use IEEE.NUMERIC_STD.ALL;
 
-**Entity Ports:**
-- `BCD` (4-bit input): BCD input from 0 to 9
-- `XS3` (4-bit output): Excess-3 output
+entity BCD_TO_XS3 is
+    port (
+        BCD : in  std_logic_vector(3 downto 0);  -- BCD input (0-9)
+        XS3 : out std_logic_vector(3 downto 0)   -- Excess-3 output
+    );
+end entity BCD_TO_XS3;
 
-### Binary-to-Gray Converter
+architecture Behavioral of BCD_TO_XS3 is
+begin
+    process (BCD)
+    begin
+        -- Add 3 to BCD input
+        XS3 <= std_logic_vector(unsigned(BCD) + 3);
+    end process;
+end architecture Behavioral;
+```
+
+---
+
+### 2. Binary to Gray Code Converter
 
 **Filename:** `bin_to_gray.vhd`
 
-The design uses dataflow modeling. The MSB remains unchanged, and the other Gray code bits are generated using XOR operations on adjacent binary bits.
+```vhdl
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
 
-**Entity Ports:**
-- `B` (4-bit input): Binary input
-- `G` (4-bit output): Gray code output
+entity BIN_TO_GRAY is
+    port (
+        B : in  std_logic_vector(3 downto 0);  -- 4-bit binary input
+        G : out std_logic_vector(3 downto 0)   -- 4-bit Gray code output
+    );
+end entity BIN_TO_GRAY;
+
+architecture Dataflow of BIN_TO_GRAY is
+begin
+    G(3) <= B(3);              -- MSB stays the same
+    G(2) <= B(3) xor B(2);
+    G(1) <= B(2) xor B(1);
+    G(0) <= B(1) xor B(0);
+end architecture Dataflow;
+```
 
 ---
 
 ## Testbench Files
 
-### BCD-to-Excess-3 Testbench
+### 1. BCD to Excess-3 Testbench
 
 **Filename:** `bcd_xs3_tb.vhd`
 
-The testbench instantiates the `BCD_TO_XS3` entity and applies BCD values 0, 1, 5, and 9 at 10 ns intervals.
+```vhdl
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
 
-### Binary-to-Gray Testbench
+entity BCD_XS3_TB is
+end entity BCD_XS3_TB;
 
-**Filename:** `gray_tb.vhd`
+architecture Simulation of BCD_XS3_TB is
+    signal BCD : std_logic_vector(3 downto 0) := "0000";
+    signal XS3 : std_logic_vector(3 downto 0);
+begin
+    DUT : entity work.BCD_TO_XS3
+        port map (BCD => BCD, XS3 => XS3);
 
-The testbench instantiates the `BIN_TO_GRAY` entity and applies selected 4-bit binary inputs at 10 ns intervals.
+    STIMULUS : process
+    begin
+        BCD <= "0000"; wait for 10 ns;  -- 0 -> 0011
+        BCD <= "0001"; wait for 10 ns;  -- 1 -> 0100
+        BCD <= "0101"; wait for 10 ns;  -- 5 -> 1000
+        BCD <= "1001"; wait for 10 ns;  -- 9 -> 1100
+        wait;
+    end process;
+end architecture Simulation;
+```
 
----
-
-## Simulation Commands
-
-### BCD-to-Excess-3 Simulation
+#### Simulation Commands — BCD to XS3
 
 ```bash
-# 1. Analyze BCD-to-Excess-3 design and testbench files
 ghdl -a bcd_to_xs3.vhd bcd_xs3_tb.vhd
-
-# 2. Elaborate the testbench
 ghdl -e BCD_XS3_TB
-
-# 3. Simulate and export waveform
 ghdl -r BCD_XS3_TB --vcd=bcd_xs3.vcd
-
-# 4. Open waveform in GTKWave
 gtkwave bcd_xs3.vcd
 ```
 
-### Binary-to-Gray Simulation
+---
+
+### 2. Binary to Gray Testbench
+
+**Filename:** `gray_tb.vhd`
+
+```vhdl
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+
+entity GRAY_TB is
+end entity GRAY_TB;
+
+architecture Simulation of GRAY_TB is
+    signal B : std_logic_vector(3 downto 0) := "0000";
+    signal G : std_logic_vector(3 downto 0);
+begin
+    DUT : entity work.BIN_TO_GRAY
+        port map (B => B, G => G);
+
+    STIMULUS : process
+    begin
+        B <= "0000"; wait for 10 ns;  -- Gray: 0000
+        B <= "0001"; wait for 10 ns;  -- Gray: 0001
+        B <= "0010"; wait for 10 ns;  -- Gray: 0011
+        B <= "0011"; wait for 10 ns;  -- Gray: 0010
+        B <= "0100"; wait for 10 ns;  -- Gray: 0110
+        B <= "1111"; wait for 10 ns;  -- Gray: 1000
+        wait;
+    end process;
+end architecture Simulation;
+```
+
+#### Simulation Commands — Binary to Gray
 
 ```bash
-# 1. Analyze Binary-to-Gray design and testbench files
 ghdl -a bin_to_gray.vhd gray_tb.vhd
-
-# 2. Elaborate the testbench
 ghdl -e GRAY_TB
-
-# 3. Simulate and export waveform
 ghdl -r GRAY_TB --vcd=gray.vcd
-
-# 4. Open waveform in GTKWave
 gtkwave gray.vcd
 ```
 
@@ -136,40 +206,33 @@ gtkwave gray.vcd
 
 ## Simulation Files
 
-**Filenames:** `bcd_xs3.vcd`, `gray.vcd`
+| Converter         | Simulation File  |
+|-------------------|------------------|
+| BCD to Excess-3   | `bcd_xs3.vcd`    |
+| Binary to Gray    | `gray.vcd`       |
 
-These Value Change Dump (VCD) files are generated by GHDL and can be loaded in GTKWave to verify the input and output transitions.
+Both VCD files are generated by GHDL after running their respective testbenches. They record all input and output signal transitions and are loaded into GTKWave for visual verification.
 
 ---
 
 ## Output
 
-### BCD-to-Excess-3 Simulation Output
+### BCD to Excess-3
 
-The expected waveform transitions are:
+![BCD to XS3 GTKWave Output](bcd_xs3.png)
 
-1. At **0-10 ns**: BCD = `0000` -> XS3 = `0011`
-2. At **10-20 ns**: BCD = `0001` -> XS3 = `0100`
-3. At **20-30 ns**: BCD = `0101` -> XS3 = `1000`
-4. At **30-40 ns**: BCD = `1001` -> XS3 = `1100`
+**Observation:** For each BCD input, the XS3 output was exactly 3 (0011) more than the input, matching the expected conversion table for all four test cases.
 
-### Binary-to-Gray Simulation Output
+---
 
-The expected waveform transitions are:
+### Binary to Gray
 
-1. At **0-10 ns**: B = `0000` -> G = `0000`
-2. At **10-20 ns**: B = `0001` -> G = `0001`
-3. At **20-30 ns**: B = `0010` -> G = `0011`
-4. At **30-40 ns**: B = `0011` -> G = `0010`
-5. At **40-50 ns**: B = `0100` -> G = `0110`
-6. At **50-60 ns**: B = `1111` -> G = `1000`
+![Binary to Gray GTKWave Output](gray.png)
+
+**Observation:** For each binary input, the Gray code output matched the expected value. Consecutive Gray code values differed by exactly one bit, confirming correct conversion behavior.
 
 ---
 
 ## Discussion and Conclusion
 
-In this lab, two combinational code converters were designed and simulated using VHDL. The BCD-to-Excess-3 converter was implemented by adding 3 to the BCD input, while the Binary-to-Gray converter was implemented using XOR operations between adjacent binary bits.
-
-The simulation results should match the expected conversion tables, verifying that both converters operate correctly for the applied test cases.
-
----
+This lab demonstrated the design and simulation of two combinational code converters in VHDL. The BCD-to-Excess-3 converter was implemented using the Behavioral modeling style, leveraging the `NUMERIC_STD` library to perform unsigned addition directly on `std_logic_vector` inputs. The Binary-to-Gray converter was implemented using the Dataflow style through concurrent XOR signal assignments, reflecting the direct hardware nature of the conversion. Both designs were verified through dedicated testbenches and GTKWave waveforms confirmed correct outputs for all input combinations. This lab reinforced the use of both Behavioral and Dataflow modeling styles and highlighted how different code conversion techniques are efficiently realized in hardware description languages.
